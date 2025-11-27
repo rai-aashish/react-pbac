@@ -1,0 +1,28 @@
+echo '-----------------------------------------------------------------------'
+echo '-- 🧪 Running tests  --'
+echo '-----------------------------------------------------------------------'
+
+yarn run test ||  (
+        echo '----------------------------------------------------------------------'
+        echo '❌  Tests Failed ❌\n\nMake the changes required to pass the tests.'
+        echo 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        false
+    )
+
+echo ' ------------------------------------------------------------'
+echo '|        ✅✅✅✅ Yeppie, all test passed!!                     |'
+echo '|      👷🔨  Building the package before pushing                   |'
+echo ' ------------------------------------------------------------'
+
+yarn run build ||  (
+        echo '----------------------------------------------------------------------'
+        echo '❌  Build Failed ❌\n\nMake the changes required to pass the build.'
+        echo 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        false
+    )
+
+
+echo ' ------------------------------------------------------------'
+echo '|        ✅✅✅✅ Build successfull!!                     |'
+echo '|        😁🤗 Begin pushing...... 👍👍                      |'
+echo ' ------------------------------------------------------------'

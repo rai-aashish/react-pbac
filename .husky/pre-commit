@@ -1,0 +1,15 @@
+echo '-----------------------------------------------------------------------'
+echo '-- 🏗️👷 Checking code formats and linting before committing  --'
+echo '-----------------------------------------------------------------------'
+
+yarn run check ||  (
+        echo '----------------------------------------------------------------------'
+        echo '🤯🥶 Check or Linting Failed. Make the required changes listed above, add changes and try to commit again.'
+        echo 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        false
+    )
+
+echo ' ------------------------------------------------------------'
+echo '|        ✅✅✅✅ Yeppie, all checks passed!!                     |'
+echo '|        😁🤗 Begin comitting...... 👍👍                      |'
+echo ' ------------------------------------------------------------'

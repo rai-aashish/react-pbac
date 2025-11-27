@@ -1,0 +1,61 @@
+{
+	"name": "react-pbac",
+	"description": "Policy-based access control for React applications",
+	"version": "0.1.0",
+	"author": "Aashish Rai",
+	"license": "MIT",
+	"keywords": [
+		"react",
+		"next js",
+		"access-control",
+		"policy-based",
+		"rbac",
+		"pbac",
+		"abac",
+		"permissions"
+	],
+	"repository": "https://github.com/rai-aashish/react-pbac",
+	"main": "dist/index.js",
+	"module": "dist/index.mjs",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"test": "vitest run",
+		"lint": "biome lint .",
+		"format": "biome format --write .",
+		"check": "biome check --write .",
+		"prepare": "husky",
+		"prepublishOnly": "npm run build"
+	},
+	"peerDependencies": {
+		"react": "^18.0.0",
+		"react-dom": "^18.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.7",
+		"@testing-library/dom": "^10.4.1",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.0",
+		"@types/node": "^20.0.0",
+		"@types/react": "^18.0.0",
+		"@types/react-dom": "^18.0.0",
+		"husky": "9.1.7",
+		"jsdom": "^27.2.0",
+		"react": "^18.0.0",
+		"react-dom": "^18.0.0",
+		"tsup": "^8.5.1",
+		"typescript": "^5.0.0",
+		"vitest": "^4.0.14"
+	}
+}

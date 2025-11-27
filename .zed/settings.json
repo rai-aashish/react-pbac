@@ -1,0 +1,10 @@
+{
+	"languages": {
+		"TypeScript": {
+			"formatter": {
+				"command": "biome",
+				"args": ["format", "--stdin-file-path", "{buffer_path}"]
+			}
+		}
+	}
+}
