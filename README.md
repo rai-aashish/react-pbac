@@ -14,7 +14,7 @@ MIT
 - **🔒 Type-Safe**: Automatic type inference for resources and actions based on your configuration. No manual type definitions or Enums required.
 - **📝 Statement-Based Policy**: Granular control with 'allow' and 'deny' effects, similar to AWS IAM.
 - **🌍 Universal**: Use the same access control logic in React components, Server Components, and utility functions.
-- **🎯 Attribute-Based Access Control (ABAC)**: Support for flexible context conditions (e.g., "allow update if authorId matches").
+- **🎯 Attribute-Based Access Control (ABAC)**: Support for flexible contexts (e.g., "allow update if authorId matches").
 - **🃏 Wildcard Support**: Support for `*` actions (e.g., "allow all actions on USER").
 - **🛡️ Secure Defaults**: Default deny policy with explicit allow overrides.
 
@@ -58,7 +58,7 @@ export const {
 
 ### 2. Define a Policy
 
-Define your access policy using the statement-based structure. You can use `context_conditions` to implement ABAC.
+Define your access policy using the statement-based structure. You can use `contexts` to implement ABAC.
 
 ```typescript
 import { TAccessControlPolicy } from 'react-pbac';
@@ -75,7 +75,7 @@ const userPolicy: TAccessControlPolicy<typeof config> = [
     resource: 'POST',
     actions: ['update'],
     effect: 'allow',
-    context_conditions: [{ authorId: 'auth-123' }],
+    contexts: [{ authorId: 'auth-123' }],
   },
   // Explicitly deny deleting posts
   {
@@ -181,7 +181,7 @@ export const getRoleBasedAccessPolicy = (role: Role): TAccessControlPolicy<typeo
           resource: 'POST',
           actions: ['delete'],
           effect: 'allow',
-          context_conditions: [{ authorId: 'current-user-id' }], // Only delete own posts
+          contexts: [{ authorId: 'current-user-id' }], // Only delete own posts
         },
       ];
     case 'VIEWER':
@@ -213,7 +213,7 @@ const policy = [
     resource: 'DOCUMENT',
     actions: ['view'],
     effect: 'allow',
-    context_conditions: [
+    contexts: [
       { department: 'engineering' },
       { public: true }
     ]
@@ -245,13 +245,13 @@ const policy = [
     resource: 'DOCUMENT',
     actions: ['view'],
     effect: 'allow',
-    context_conditions: [{ department: 'engineering' }]
+    contexts: [{ department: 'engineering' }]
   },
   {
     resource: 'DOCUMENT',
     actions: ['view'],
     effect: 'allow',
-    context_conditions: [{ department: 'sales' }]
+    contexts: [{ department: 'sales' }]
   }
 ];
 

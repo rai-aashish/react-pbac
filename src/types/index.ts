@@ -19,7 +19,7 @@ export type TAccessControlStatement<T extends AccessControlConfig> = {
 		effect: "allow" | "deny";
 		/** Optional conditions for Attribute-Based Access Control (ABAC). Access is granted if ANY condition object matches (OR logic). */
 		// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-		context_conditions?: Record<string, any>[];
+		contexts?: Record<string, any>[];
 	};
 }[keyof T];
 

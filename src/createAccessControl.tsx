@@ -82,7 +82,7 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 
 				// Check conditions
 				let conditionMatches = true;
-				const policyConditions = stmt.context_conditions || [];
+				const policyConditions = stmt.contexts || [];
 
 				if (policyConditions.length > 0) {
 					if (inputContexts.length === 0) {

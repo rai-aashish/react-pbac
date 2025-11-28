@@ -33,7 +33,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					context_conditions: [{ authorId: "auth-123" }],
+					contexts: [{ authorId: "auth-123" }],
 				},
 			];
 
@@ -48,7 +48,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					context_conditions: [{ authorId: "auth-123" }],
+					contexts: [{ authorId: "auth-123" }],
 				},
 			];
 
@@ -72,7 +72,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					context_conditions: [{ status: "published" }],
+					contexts: [{ status: "published" }],
 				},
 			];
 
@@ -87,13 +87,13 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					context_conditions: [{ authorId: "auth-123", status: "draft" }],
+					contexts: [{ authorId: "auth-123", status: "draft" }],
 				},
 				{
 					resource: "POST",
 					actions: ["update"],
 					effect: "deny",
-					context_conditions: [{ authorId: "auth-123", resource: "protected" }],
+					contexts: [{ authorId: "auth-123", resource: "protected" }],
 				},
 			];
 
@@ -116,7 +116,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["*"],
 					effect: "allow",
-					context_conditions: [
+					contexts: [
 						{ status: "published" },
 						{ status: "draft", role: "superadmin" },
 					],
@@ -125,7 +125,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["read"],
 					effect: "allow",
-					context_conditions: [
+					contexts: [
 						{ status: "published" },
 						{ status: "draft", role: "superadmin" },
 					],
@@ -161,10 +161,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					context_conditions: [
-						{ role: "user" },
-						{ role: "admin", status: "draft" },
-					],
+					contexts: [{ role: "user" }, { role: "admin", status: "draft" }],
 				},
 			];
 
@@ -187,7 +184,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					context_conditions: [{ authorId: "auth-123" }],
+					contexts: [{ authorId: "auth-123" }],
 				},
 			];
 
