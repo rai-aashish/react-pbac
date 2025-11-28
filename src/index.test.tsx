@@ -285,4 +285,50 @@ describe("Access Control System", () => {
 			expect(container).toBeEmptyDOMElement();
 		});
 	});
+
+	describe("PassThrough Mode", () => {
+		it("should render children function with allowed=true when access is granted", async () => {
+			const policy: TAccessControlPolicy<TStrongAccessControlConfig> = [
+				{ resource: "POST", actions: ["read"], effect: "allow" },
+			];
+
+			render(
+				<AccessPolicyProvider accessControlPolicy={policy}>
+					<AccessPolicyGuard resource="POST" action="read" passThrough={true}>
+						{({ allowed }) => <div>Allowed: {allowed.toString()}</div>}
+					</AccessPolicyGuard>
+				</AccessPolicyProvider>,
+			);
+
+			expect(await screen.findByText("Allowed: true")).toBeInTheDocument();
+		});
+
+		it("should render children function with allowed=false when access is denied", async () => {
+			const policy: TAccessControlPolicy<TStrongAccessControlConfig> = [];
+
+			render(
+				<AccessPolicyProvider accessControlPolicy={policy}>
+					<AccessPolicyGuard resource="POST" action="read" passThrough={true}>
+						{({ allowed }) => <div>Allowed: {allowed.toString()}</div>}
+					</AccessPolicyGuard>
+				</AccessPolicyProvider>,
+			);
+
+			expect(await screen.findByText("Allowed: false")).toBeInTheDocument();
+		});
+
+		it("should expose isLoading state to children function", async () => {
+			const policy: TAccessControlPolicy<TStrongAccessControlConfig> = [];
+
+			render(
+				<AccessPolicyProvider accessControlPolicy={policy} isLoading={true}>
+					<AccessPolicyGuard resource="POST" action="read" passThrough={true}>
+						{({ isLoading }) => <div>Loading: {isLoading.toString()}</div>}
+					</AccessPolicyGuard>
+				</AccessPolicyProvider>,
+			);
+
+			expect(await screen.findByText("Loading: true")).toBeInTheDocument();
+		});
+	});
 });

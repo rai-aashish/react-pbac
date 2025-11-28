@@ -320,4 +320,19 @@ Factory function to create typed access control utilities.
   - `fallback?`: Content to show if denied.
   - `loadingFallback?`: Content to show while loading.
   - `children`: Content to show if allowed.
+  - `passThrough?`: If `true`, children must be a function receiving `{ allowed, isLoading }`. `fallback` and `loadingFallback` are ignored.
+
+### Advanced Usage: Render Props
+
+You can use the `passThrough` prop to take full control of rendering. This is useful for disabling buttons instead of hiding them, or showing custom tooltips.
+
+```tsx
+<AccessPolicyGuard resource="POST" action="update" passThrough>
+  {({ allowed, isLoading }) => (
+    <button disabled={!allowed || isLoading}>
+      {isLoading ? 'Checking...' : allowed ? 'Edit Post' : 'Permission Denied'}
+    </button>
+  )}
+</AccessPolicyGuard>
+```
 

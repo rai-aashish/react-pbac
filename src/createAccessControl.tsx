@@ -21,7 +21,12 @@ export interface AccessPolicyProviderProps<T extends AccessControlConfig> {
 /**
  * Props for the AccessPolicyGuard component.
  */
-export interface AccessPolicyGuardProps<
+export interface GuardRenderProps {
+	allowed: boolean;
+	isLoading: boolean;
+}
+
+interface AccessPolicyGuardBaseProps<
 	T extends AccessControlConfig,
 	R extends keyof T,
 > {
@@ -32,12 +37,39 @@ export interface AccessPolicyGuardProps<
 	/** Optional context to check against the policy conditions. */
 	// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
 	context?: Record<string, any> | Record<string, any>[];
+}
+
+interface AccessPolicyGuardStandardProps<
+	T extends AccessControlConfig,
+	R extends keyof T,
+> extends AccessPolicyGuardBaseProps<T, R> {
+	passThrough?: false;
 	/** Content to render if access is denied. Defaults to null. */
 	fallback?: React.ReactNode;
 	/** Content to render while the policy is loading. Defaults to null. */
 	loadingFallback?: React.ReactNode;
 	children: React.ReactNode;
 }
+
+interface AccessPolicyGuardPassThroughProps<
+	T extends AccessControlConfig,
+	R extends keyof T,
+> extends AccessPolicyGuardBaseProps<T, R> {
+	passThrough: true;
+	fallback?: never;
+	loadingFallback?: never;
+	children: (props: GuardRenderProps) => React.ReactNode;
+}
+
+/**
+ * Props for the AccessPolicyGuard component.
+ */
+export type AccessPolicyGuardProps<
+	T extends AccessControlConfig,
+	R extends keyof T,
+> =
+	| AccessPolicyGuardStandardProps<T, R>
+	| AccessPolicyGuardPassThroughProps<T, R>;
 
 /**
  * Factory function to create typed access control utilities based on your configuration.
@@ -192,25 +224,26 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 	/**
 	 * Component that conditionally renders its children based on access control.
 	 */
-	const AccessPolicyGuard = <R extends keyof T>({
-		resource,
-		action,
-		context,
-		fallback = null,
-		loadingFallback = null,
-		children,
-	}: AccessPolicyGuardProps<T, R>) => {
+	const AccessPolicyGuard = <R extends keyof T>(
+		props: AccessPolicyGuardProps<T, R>,
+	) => {
+		const { resource, action, context } = props;
 		const { can, isLoading } = useAccessPolicy();
+		const isAllowed = can(resource, action, context);
+
+		if (props.passThrough) {
+			return <>{props.children({ allowed: isAllowed, isLoading })}</>;
+		}
 
 		if (isLoading) {
-			return <>{loadingFallback}</>;
+			return <>{props.loadingFallback}</>;
 		}
 
-		if (can(resource, action, context)) {
-			return <>{children}</>;
+		if (isAllowed) {
+			return <>{props.children}</>;
 		}
 
-		return <>{fallback}</>;
+		return <>{props.fallback}</>;
 	};
 
 	/**
