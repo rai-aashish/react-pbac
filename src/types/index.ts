@@ -19,7 +19,7 @@ export type TAccessControlStatement<T extends AccessControlConfig> = {
 		effect: "allow" | "deny";
 		/** Optional conditions for Attribute-Based Access Control (ABAC). Access is granted if ANY condition object matches (OR logic). */
 		// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-		conditions?: Record<string, any>[];
+		context_conditions?: Record<string, any>[];
 	};
 }[keyof T];
 
@@ -40,21 +40,21 @@ export interface AccessPolicyContextType<T extends AccessControlConfig> {
 	can: <R extends keyof T>(
 		resource: R,
 		action: T[R][number],
-		// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-		conditions?: Record<string, any> | Record<string, any>[],
+		// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
+		context?: Record<string, any> | Record<string, any>[],
 	) => boolean;
 	/** Checks if ALL specified actions on a resource are allowed. */
 	canAll: <R extends keyof T>(
 		resource: R,
 		actions: T[R][number][],
-		// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-		conditions?: Record<string, any> | Record<string, any>[],
+		// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
+		context?: Record<string, any> | Record<string, any>[],
 	) => boolean;
 	/** Checks if ANY of the specified actions on a resource are allowed. */
 	canAny: <R extends keyof T>(
 		resource: R,
 		actions: T[R][number][],
-		// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-		conditions?: Record<string, any> | Record<string, any>[],
+		// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
+		context?: Record<string, any> | Record<string, any>[],
 	) => boolean;
 }

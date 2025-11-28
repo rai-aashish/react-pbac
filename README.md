@@ -14,7 +14,7 @@ MIT
 - **🔒 Type-Safe**: Automatic type inference for resources and actions based on your configuration. No manual type definitions or Enums required.
 - **📝 Statement-Based Policy**: Granular control with 'allow' and 'deny' effects, similar to AWS IAM.
 - **🌍 Universal**: Use the same access control logic in React components, Server Components, and utility functions.
-- **🎯 Attribute-Based Access Control (ABAC)**: Support for flexible conditions (e.g., "allow update if authorId matches").
+- **🎯 Attribute-Based Access Control (ABAC)**: Support for flexible context conditions (e.g., "allow update if authorId matches").
 - **🃏 Wildcard Support**: Support for `*` actions (e.g., "allow all actions on USER").
 - **🛡️ Secure Defaults**: Default deny policy with explicit allow overrides.
 
@@ -58,7 +58,7 @@ export const {
 
 ### 2. Define a Policy
 
-Define your access policy using the statement-based structure. You can use `conditions` to implement ABAC.
+Define your access policy using the statement-based structure. You can use `context_conditions` to implement ABAC.
 
 ```typescript
 import { TAccessControlPolicy } from 'react-pbac';
@@ -75,7 +75,7 @@ const userPolicy: TAccessControlPolicy<typeof config> = [
     resource: 'POST',
     actions: ['update'],
     effect: 'allow',
-    conditions: [{ authorId: 'auth-123' }],
+    context_conditions: [{ authorId: 'auth-123' }],
   },
   // Explicitly deny deleting posts
   {
@@ -106,7 +106,7 @@ const userAccessPolicy = getUserAccessPolicy();
 
 ### 4. Check Permissions (Client-Side)
 
-Use the `useAccessPolicy` hook or `AccessPolicyGuard` component. Pass a `conditions` object (or array of objects) to check against policy conditions.
+Use the `useAccessPolicy` hook or `AccessPolicyGuard` component. Pass a `context` object (or array of objects) to check against policy conditions.
 
 ```tsx
 import { useAccessPolicy, AccessPolicyGuard } from './access-control';
@@ -119,7 +119,7 @@ const MyComponent = () => {
       {/* Simple check */}
       {can('POST', 'read') && <button>Read Posts</button>}
 
-      {/* Condition-based check */}
+      {/* Context-based check */}
       {can('POST', 'update', { authorId: 'auth-123' }) && <button>Edit My Post</button>}
 
       {/* Component Guard */}
@@ -181,7 +181,7 @@ export const getRoleBasedAccessPolicy = (role: Role): TAccessControlPolicy<typeo
           resource: 'POST',
           actions: ['delete'],
           effect: 'allow',
-          conditions: [{ authorId: 'current-user-id' }], // Only delete own posts
+          context_conditions: [{ authorId: 'current-user-id' }], // Only delete own posts
         },
       ];
     case 'VIEWER':
@@ -213,7 +213,7 @@ const policy = [
     resource: 'DOCUMENT',
     actions: ['view'],
     effect: 'allow',
-    conditions: [
+    context_conditions: [
       { department: 'engineering' },
       { public: true }
     ]
@@ -227,6 +227,46 @@ const MyDoc = ({ doc }) => {
   // Checks if doc.department === 'engineering' OR doc.public === true
   if (can('DOCUMENT', 'view', { department: doc.department, public: doc.isPublic })) {
     return <ViewDoc doc={doc} />;
+  }
+  return null;
+};
+```
+
+### Multiple Contexts
+
+In rare cases, you might need to check multiple potential contexts at once. The policy engine will check if *any* of the provided contexts satisfy the policy conditions (OR logic).
+
+> **Note**: For 99% of cases, you will pass a single object (your "Context"). You might pass an array if you need to check multiple potential contexts at once (e.g. user belongs to multiple departments).
+
+```tsx
+// Policy
+const policy = [
+  {
+    resource: 'DOCUMENT',
+    actions: ['view'],
+    effect: 'allow',
+    context_conditions: [{ department: 'engineering' }]
+  },
+  {
+    resource: 'DOCUMENT',
+    actions: ['view'],
+    effect: 'allow',
+    context_conditions: [{ department: 'sales' }]
+  }
+];
+
+// Component
+const MyDoc = () => {
+  const { can } = useAccessPolicy();
+  
+  // Check if user has access via EITHER engineering OR sales context
+  const userContexts = [
+    { department: 'engineering', role: 'intern' },
+    { department: 'sales', role: 'lead' }
+  ];
+
+  if (can('DOCUMENT', 'view', userContexts)) {
+    return <ViewDoc />;
   }
   return null;
 };
@@ -255,9 +295,9 @@ Factory function to create typed access control utilities.
 ### `useAccessPolicy()`
 
 - **Returns**:
-  - `can(resource, action, conditions?)`: Returns `boolean`.
-  - `canAll(resource, actions, conditions?)`: Returns `boolean`.
-  - `canAny(resource, actions, conditions?)`: Returns `boolean`.
+  - `can(resource, action, context?)`: Returns `boolean`.
+  - `canAll(resource, actions, context?)`: Returns `boolean`.
+  - `canAny(resource, actions, context?)`: Returns `boolean`.
   - `policy`: The current policy object.
 
 ### `AccessPolicyGuard`
@@ -265,7 +305,7 @@ Factory function to create typed access control utilities.
 - **Props**:
   - `resource`: Resource key.
   - `action`: Action name.
-  - `conditions?`: Optional condition object or array of objects for matching.
+  - `context?`: Optional context object or array of objects for matching.
   - `fallback?`: Content to show if denied.
   - `children`: Content to show if allowed.
 

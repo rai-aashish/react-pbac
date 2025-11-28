@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+
 import { createAccessControl } from "./createAccessControl";
 import type { TAccessControlPolicy } from "./types";
 
@@ -32,7 +33,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					conditions: [{ authorId: "auth-123" }],
+					context_conditions: [{ authorId: "auth-123" }],
 				},
 			];
 
@@ -47,7 +48,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					conditions: [{ authorId: "auth-123" }],
+					context_conditions: [{ authorId: "auth-123" }],
 				},
 			];
 
@@ -71,7 +72,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					conditions: [{ status: "published" }],
+					context_conditions: [{ status: "published" }],
 				},
 			];
 
@@ -86,7 +87,13 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					conditions: [{ authorId: "auth-123", status: "draft" }],
+					context_conditions: [{ authorId: "auth-123", status: "draft" }],
+				},
+				{
+					resource: "POST",
+					actions: ["update"],
+					effect: "deny",
+					context_conditions: [{ authorId: "auth-123", resource: "protected" }],
 				},
 			];
 
@@ -97,6 +104,9 @@ describe("Access Control System", () => {
 			expect(
 				can("POST", "update", { authorId: "auth-123", status: "published" }),
 			).toBe(false);
+			expect(
+				can("POST", "update", { authorId: "auth-123", resource: "protected" }),
+			).toBe(false);
 			expect(can("POST", "update", { authorId: "auth-123" })).toBe(false); // Missing key
 		});
 
@@ -106,7 +116,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["*"],
 					effect: "allow",
-					conditions: [
+					context_conditions: [
 						{ status: "published" },
 						{ status: "draft", role: "superadmin" },
 					],
@@ -115,7 +125,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["read"],
 					effect: "allow",
-					conditions: [
+					context_conditions: [
 						{ status: "published" },
 						{ status: "draft", role: "superadmin" },
 					],
@@ -151,7 +161,10 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					conditions: [{ role: "admin" }, { role: "editor", status: "draft" }],
+					context_conditions: [
+						{ role: "user" },
+						{ role: "admin", status: "draft" },
+					],
 				},
 			];
 
@@ -162,7 +175,8 @@ describe("Access Control System", () => {
 			expect(can("POST", "update", [{ role: "user" }, { role: "admin" }])).toBe(
 				true,
 			);
-			expect(can("POST", "update", [{ role: "user" }])).toBe(false);
+			expect(can("POST", "update", [{ role: "user" }])).toBe(true);
+			expect(can("POST", "update", [{ role: "guest" }])).toBe(false);
 		});
 	});
 
@@ -173,7 +187,7 @@ describe("Access Control System", () => {
 					resource: "POST",
 					actions: ["update"],
 					effect: "allow",
-					conditions: [{ authorId: "auth-123" }],
+					context_conditions: [{ authorId: "auth-123" }],
 				},
 			];
 
@@ -182,14 +196,14 @@ describe("Access Control System", () => {
 					<AccessPolicyGuard
 						resource="POST"
 						action="update"
-						conditions={{ authorId: "auth-123" }}
+						context={{ authorId: "auth-123" }}
 					>
 						<button type="button">Edit My Post</button>
 					</AccessPolicyGuard>
 					<AccessPolicyGuard
 						resource="POST"
 						action="update"
-						conditions={[{ authorId: "other" }]}
+						context={[{ authorId: "other" }]}
 						fallback={<span>Cannot edit</span>}
 					>
 						<button type="button">Edit Other Post</button>

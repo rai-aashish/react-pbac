@@ -1,5 +1,6 @@
 import type React from "react";
 import { createContext, useContext, useMemo } from "react";
+
 import type {
 	AccessControlConfig,
 	AccessPolicyContextType,
@@ -26,9 +27,9 @@ export interface AccessPolicyGuardProps<
 	resource: R;
 	/** The action to check access for. */
 	action: T[R][number];
-	/** Optional conditions to check against the policy. */
-	// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-	conditions?: Record<string, any> | Record<string, any>[];
+	/** Optional context to check against the policy conditions. */
+	// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
+	context?: Record<string, any> | Record<string, any>[];
 	/** Content to render if access is denied. Defaults to null. */
 	fallback?: React.ReactNode;
 	children: React.ReactNode;
@@ -56,16 +57,16 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 		const can = <R extends keyof T>(
 			resource: R,
 			action: T[R][number],
-			// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-			conditions?: Record<string, any> | Record<string, any>[],
+			// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
+			context?: Record<string, any> | Record<string, any>[],
 		): boolean => {
 			let isAllowed = false;
 
-			// Normalize input conditions to an array
-			const inputConditions = Array.isArray(conditions)
-				? conditions
-				: conditions
-					? [conditions]
+			// Normalize input context to an array
+			const inputContexts = Array.isArray(context)
+				? context
+				: context
+					? [context]
 					: [];
 
 			// Filter statements relevant to this resource
@@ -81,20 +82,20 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 
 				// Check conditions
 				let conditionMatches = true;
-				const policyConditions = stmt.conditions || [];
+				const policyConditions = stmt.context_conditions || [];
 
 				if (policyConditions.length > 0) {
-					if (inputConditions.length === 0) {
-						// If statement has conditions but no input conditions provided, it doesn't match
+					if (inputContexts.length === 0) {
+						// If statement has conditions but no input context provided, it doesn't match
 						conditionMatches = false;
 					} else {
-						// Check if ANY policy condition matches ANY input condition (OR logic)
-						// We need to find at least one pair of (policyCondition, inputCondition) that matches
+						// Check if ANY policy condition matches ANY input context (OR logic)
+						// We need to find at least one pair of (policyCondition, inputContext) that matches
 						const anyMatch = policyConditions.some((policyCondition) => {
-							return inputConditions.some((inputCondition) => {
-								// Check if ALL keys in the policy condition match the input condition values
+							return inputContexts.some((inputContext) => {
+								// Check if ALL keys in the policy condition match the input context values
 								return Object.entries(policyCondition).every(
-									([key, value]) => inputCondition[key] === value,
+									([key, value]) => inputContext[key] === value,
 								);
 							});
 						});
@@ -122,19 +123,19 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 		const canAll = <R extends keyof T>(
 			resource: R,
 			actions: T[R][number][],
-			// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-			conditions?: Record<string, any> | Record<string, any>[],
+			// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
+			context?: Record<string, any> | Record<string, any>[],
 		): boolean => {
-			return actions.every((action) => can(resource, action, conditions));
+			return actions.every((action) => can(resource, action, context));
 		};
 
 		const canAny = <R extends keyof T>(
 			resource: R,
 			actions: T[R][number][],
-			// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-			conditions?: Record<string, any> | Record<string, any>[],
+			// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
+			context?: Record<string, any> | Record<string, any>[],
 		): boolean => {
-			return actions.some((action) => can(resource, action, conditions));
+			return actions.some((action) => can(resource, action, context));
 		};
 
 		return { policy: accessControlPolicy, can, canAll, canAny };
@@ -180,13 +181,13 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 	const AccessPolicyGuard = <R extends keyof T>({
 		resource,
 		action,
-		conditions,
+		context,
 		fallback = null,
 		children,
 	}: AccessPolicyGuardProps<T, R>) => {
 		const { can } = useAccessPolicy();
 
-		if (can(resource, action, conditions)) {
+		if (can(resource, action, context)) {
 			return <>{children}</>;
 		}
 
@@ -207,14 +208,14 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 		WrappedComponent: React.ComponentType<P>,
 		resource: R,
 		action: T[R][number],
-		// biome-ignore lint/suspicious/noExplicitAny: Conditions can have any value type
-		conditions?: Record<string, any> | Record<string, any>[],
+		// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
+		context?: Record<string, any> | Record<string, any>[],
 		FallbackComponent: React.ComponentType<P> | null = null,
 	) => {
 		return (props: P) => {
 			const { can } = useAccessPolicy();
 
-			if (can(resource, action, conditions)) {
+			if (can(resource, action, context)) {
 				return <WrappedComponent {...props} />;
 			}
 
