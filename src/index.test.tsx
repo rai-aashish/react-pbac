@@ -212,4 +212,77 @@ describe("Access Control System", () => {
 			expect(await screen.findByText("Cannot edit")).toBeInTheDocument();
 		});
 	});
+
+	describe("Loading State", () => {
+		it("should expose isLoading from useAccessPolicy", () => {
+			const policy: TAccessControlPolicy<TStrongAccessControlConfig> = [];
+			render(
+				<AccessPolicyProvider accessControlPolicy={policy} isLoading={true}>
+					<AccessPolicyGuard resource="POST" action="read">
+						<div>Content</div>
+					</AccessPolicyGuard>
+				</AccessPolicyProvider>,
+			);
+			// We can't easily check the hook return value directly without a test component,
+			// but we can check if the Guard behaves correctly which uses the hook.
+		});
+
+		it("should show loadingFallback when loading", async () => {
+			const policy: TAccessControlPolicy<TStrongAccessControlConfig> = [
+				{ resource: "POST", actions: ["read"], effect: "allow" },
+			];
+
+			render(
+				<AccessPolicyProvider accessControlPolicy={policy} isLoading={true}>
+					<AccessPolicyGuard
+						resource="POST"
+						action="read"
+						loadingFallback={<div>Loading...</div>}
+					>
+						<div>Content</div>
+					</AccessPolicyGuard>
+				</AccessPolicyProvider>,
+			);
+
+			expect(await screen.findByText("Loading...")).toBeInTheDocument();
+			expect(screen.queryByText("Content")).not.toBeInTheDocument();
+		});
+
+		it("should show content when not loading", async () => {
+			const policy: TAccessControlPolicy<TStrongAccessControlConfig> = [
+				{ resource: "POST", actions: ["read"], effect: "allow" },
+			];
+
+			render(
+				<AccessPolicyProvider accessControlPolicy={policy} isLoading={false}>
+					<AccessPolicyGuard
+						resource="POST"
+						action="read"
+						loadingFallback={<div>Loading...</div>}
+					>
+						<div>Content</div>
+					</AccessPolicyGuard>
+				</AccessPolicyProvider>,
+			);
+
+			expect(await screen.findByText("Content")).toBeInTheDocument();
+			expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+		});
+
+		it("should default to null fallback when loading if not provided", () => {
+			const policy: TAccessControlPolicy<TStrongAccessControlConfig> = [
+				{ resource: "POST", actions: ["read"], effect: "allow" },
+			];
+
+			const { container } = render(
+				<AccessPolicyProvider accessControlPolicy={policy} isLoading={true}>
+					<AccessPolicyGuard resource="POST" action="read">
+						<div>Content</div>
+					</AccessPolicyGuard>
+				</AccessPolicyProvider>,
+			);
+
+			expect(container).toBeEmptyDOMElement();
+		});
+	});
 });

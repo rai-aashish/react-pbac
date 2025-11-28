@@ -13,6 +13,8 @@ import type {
 export interface AccessPolicyProviderProps<T extends AccessControlConfig> {
 	/** The access control policy to enforce. */
 	accessControlPolicy: TAccessControlPolicy<T>;
+	/** Optional flag to indicate if the policy is currently loading. Defaults to false. */
+	isLoading?: boolean;
 	children: React.ReactNode;
 }
 
@@ -32,6 +34,8 @@ export interface AccessPolicyGuardProps<
 	context?: Record<string, any> | Record<string, any>[];
 	/** Content to render if access is denied. Defaults to null. */
 	fallback?: React.ReactNode;
+	/** Content to render while the policy is loading. Defaults to null. */
+	loadingFallback?: React.ReactNode;
 	children: React.ReactNode;
 }
 
@@ -138,7 +142,13 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 			return actions.some((action) => can(resource, action, context));
 		};
 
-		return { policy: accessControlPolicy, can, canAll, canAny };
+		return {
+			policy: accessControlPolicy,
+			can,
+			canAll,
+			canAny,
+			isLoading: false,
+		};
 	};
 
 	/**
@@ -146,11 +156,15 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 	 */
 	const AccessPolicyProvider: React.FC<AccessPolicyProviderProps<T>> = ({
 		accessControlPolicy,
+		isLoading = false,
 		children,
 	}) => {
 		const value = useMemo(
-			() => getAccessPolicy(accessControlPolicy),
-			[accessControlPolicy],
+			() => ({
+				...getAccessPolicy(accessControlPolicy),
+				isLoading,
+			}),
+			[accessControlPolicy, isLoading],
 		);
 		return (
 			<AccessPolicyContext.Provider value={value}>
@@ -162,7 +176,7 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 	/**
 	 * Hook to access the access control context.
 	 *
-	 * @returns The access control context containing `can`, `canAll`, `canAny`, and `policy`.
+	 * @returns The access control context containing `can`, `canAll`, `canAny`, `policy`, and `isLoading`.
 	 * @throws Error if used outside of AccessPolicyProvider.
 	 */
 	const useAccessPolicy = () => {
@@ -183,9 +197,14 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 		action,
 		context,
 		fallback = null,
+		loadingFallback = null,
 		children,
 	}: AccessPolicyGuardProps<T, R>) => {
-		const { can } = useAccessPolicy();
+		const { can, isLoading } = useAccessPolicy();
+
+		if (isLoading) {
+			return <>{loadingFallback}</>;
+		}
 
 		if (can(resource, action, context)) {
 			return <>{children}</>;
@@ -211,9 +230,17 @@ export function createAccessControl<T extends AccessControlConfig>(_config: T) {
 		// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
 		context?: Record<string, any> | Record<string, any>[],
 		FallbackComponent: React.ComponentType<P> | null = null,
+		LoadingComponent: React.ComponentType<P> | null = null,
 	) => {
 		return (props: P) => {
-			const { can } = useAccessPolicy();
+			const { can, isLoading } = useAccessPolicy();
+
+			if (isLoading) {
+				if (LoadingComponent) {
+					return <LoadingComponent {...props} />;
+				}
+				return null;
+			}
 
 			if (can(resource, action, context)) {
 				return <WrappedComponent {...props} />;

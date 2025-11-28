@@ -94,10 +94,10 @@ Wrap your application with the `AccessPolicyProvider` and pass the policy.
 import { AccessPolicyProvider } from './access-control';
 
 export const App = () => {
-// your logic to fetch or prepare the policy
-const userAccessPolicy = getUserAccessPolicy();
+  const { policy, isLoading } = useUserPolicy(); // Your custom hook to fetch policy
+
   return (
-    <AccessPolicyProvider accessControlPolicy={userAccessPolicy}>
+    <AccessPolicyProvider accessControlPolicy={policy} isLoading={isLoading}>
       <MyComponent />
     </AccessPolicyProvider>
   );
@@ -112,7 +112,11 @@ Use the `useAccessPolicy` hook or `AccessPolicyGuard` component. Pass a `context
 import { useAccessPolicy, AccessPolicyGuard } from './access-control';
 
 const MyComponent = () => {
-  const { can } = useAccessPolicy();
+  const { can, isLoading } = useAccessPolicy();
+
+  if (isLoading) {
+    return <div>Loading permissions...</div>;
+  }
 
   return (
     <div>
@@ -122,8 +126,13 @@ const MyComponent = () => {
       {/* Context-based check */}
       {can('POST', 'update', { authorId: 'auth-123' }) && <button>Edit My Post</button>}
 
-      {/* Component Guard */}
-      <AccessPolicyGuard resource="SETTINGS" action="edit" fallback={<span>No Access</span>}>
+      {/* Component Guard with Loading Fallback */}
+      <AccessPolicyGuard 
+        resource="SETTINGS" 
+        action="edit" 
+        fallback={<span>No Access</span>}
+        loadingFallback={<span>Checking...</span>}
+      >
         <button>Edit Settings</button>
       </AccessPolicyGuard>
     </div>
@@ -290,6 +299,7 @@ Factory function to create typed access control utilities.
 
 - **Props**:
   - `accessControlPolicy`: Array of policy statements.
+  - `isLoading`: Optional boolean. Defaults to `false`.
   - `children`: React nodes.
 
 ### `useAccessPolicy()`
@@ -299,6 +309,7 @@ Factory function to create typed access control utilities.
   - `canAll(resource, actions, context?)`: Returns `boolean`.
   - `canAny(resource, actions, context?)`: Returns `boolean`.
   - `policy`: The current policy object.
+  - `isLoading`: Boolean indicating if policy is loading.
 
 ### `AccessPolicyGuard`
 
@@ -307,5 +318,6 @@ Factory function to create typed access control utilities.
   - `action`: Action name.
   - `context?`: Optional context object or array of objects for matching.
   - `fallback?`: Content to show if denied.
+  - `loadingFallback?`: Content to show while loading.
   - `children`: Content to show if allowed.
 

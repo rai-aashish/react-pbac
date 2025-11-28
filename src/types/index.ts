@@ -57,4 +57,6 @@ export interface AccessPolicyContextType<T extends AccessControlConfig> {
 		// biome-ignore lint/suspicious/noExplicitAny: Context can have any value type
 		context?: Record<string, any> | Record<string, any>[],
 	) => boolean;
+	/** Indicates if the policy is currently loading. */
+	isLoading: boolean;
 }
